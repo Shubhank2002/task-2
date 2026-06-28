@@ -1,4 +1,13 @@
+const pageWrapper = document.createElement('div')
+pageWrapper.style.display = 'flex'
+pageWrapper.style.gap = '20px'
+
 const container = document.createElement('div')
+container.style.display = 'flex'
+container.style.flexDirection = 'column'
+container.style.gap = '20px'
+container.style.padding = '10px'
+container.style.alignItems = 'center'
 
 const products_container = document.createElement('div')
 products_container.style.display = 'flex'
@@ -6,12 +15,124 @@ products_container.style.flexWrap = 'wrap'
 products_container.style.width = '80%'
 products_container.style.gap = '20px'
 
-async function getProducts(){
+const searchContainer = document.createElement('div')
+
+const searchInput = document.createElement('input')
+searchInput.placeholder = 'Search products...'
+
+const searchBtn = document.createElement('button')
+searchBtn.innerText = 'Search'
+
+const clearBtn = document.createElement('button')
+clearBtn.innerText = 'Clear Searches'
+
+searchContainer.append(searchInput, searchBtn, clearBtn)
+
+const sortContainer = document.createElement('div')
+sortContainer.classList.add('sort')
+
+const sortByLowHigh = document.createElement('button')
+sortByLowHigh.classList.add('sort-options')
+sortByLowHigh.innerText = 'Sort By Price Low To High'
+
+const sortByHighLow = document.createElement('button')
+sortByHighLow.classList.add('sort-options')
+sortByHighLow.innerText = 'Sort By Price High To Low'
+
+const sortByRating = document.createElement('button')
+sortByRating.classList.add('sort-options')
+sortByRating.innerText = 'Sort By Rating (High To Low)'
+
+sortContainer.append(sortByLowHigh, sortByHighLow, sortByRating)
+
+const leftSidebar = document.createElement('div')
+leftSidebar.style.width = '200px'
+leftSidebar.style.padding = '10px'
+leftSidebar.style.flexShrink = '0'
+leftSidebar.style.display = 'flex'
+leftSidebar.style.flexDirection = 'column'
+leftSidebar.style.gap = '10px'
+
+async function getProducts() {
     const response = await fetch('https://dummyjson.com/products?limit=15')
     const data = await response.json()
     console.log(data)
     return data.products
 }
+
+async function getCategories() {
+    const response = await fetch('https://dummyjson.com/products/categories')
+    const data = await response.json()
+    return data
+}
+
+function renderCategories(categories) {
+    categories.forEach(cat => {
+        const label = document.createElement('label')
+        label.style.display = 'block'
+        label.style.marginBottom = '8px'
+
+        const radio = document.createElement('input')
+        radio.type = 'radio'
+        radio.name = 'category'
+        radio.value = cat.slug
+
+        radio.addEventListener('change', async () => {
+            const response = await fetch(`https://dummyjson.com/products/category/${cat.slug}`)
+            const data = await response.json()
+            renderProducts(data.products)
+        })
+
+        label.appendChild(radio)
+        label.append(` ${cat.name}`)
+        leftSidebar.appendChild(label)
+    })
+}
+
+let products = null
+
+sortByLowHigh.addEventListener('click', () => {
+    const sorted = [...products].sort((a, b) => {
+        const priceA = a.price - (a.price * a.discountPercentage / 100)
+        const priceB = b.price - (b.price * b.discountPercentage / 100)
+        return priceA - priceB
+    })
+    renderProducts(sorted)
+})
+
+sortByHighLow.addEventListener('click', () => {
+    const sorted = [...products].sort((a, b) => {
+        const priceA = a.price - (a.price * a.discountPercentage / 100)
+        const priceB = b.price - (b.price * b.discountPercentage / 100)
+        return priceB - priceA
+    })
+    renderProducts(sorted)
+})
+
+sortByRating.addEventListener('click', () => {
+    const sorted = [...products].sort((a, b) => b.rating - a.rating)
+    renderProducts(sorted)
+})
+
+searchBtn.addEventListener('click', async()=>{
+     const query = searchInput.value
+    const response = await fetch(`https://dummyjson.com/products/search?q=${query}`)
+    const data = await response.json()
+    renderProducts(data.products)
+})
+
+clearBtn.addEventListener('click', () => {
+    searchInput.value = ''
+    renderProducts(products)  // back to original 15
+})
+
+const clearCatBtn = document.createElement('button')
+clearCatBtn.innerText = 'Clear Categories'
+clearCatBtn.addEventListener('click', () => {
+    document.querySelectorAll('input[name="category"]').forEach(r => r.checked = false)
+    renderProducts(products)
+})
+leftSidebar.appendChild(clearCatBtn)
 
 function createProductCard(product) {
     const discountedPrice = (product.price - (product.price * product.discountPercentage / 100)).toFixed(2)
@@ -109,18 +230,25 @@ function createProductCard(product) {
     return card
 }
 
-function renderProducts(products){
-    products.forEach((product, index)=>{
+function renderProducts(products) {
+    products_container.innerHTML = ''
+    products.forEach((product, index) => {
         const card = createProductCard(product)
         products_container.appendChild(card)
     })
-    container.appendChild(products_container)
-    document.body.appendChild(container)
 }
+container.appendChild(searchContainer)
+container.appendChild(sortContainer)
+container.appendChild(products_container)
+pageWrapper.appendChild(leftSidebar)
+pageWrapper.appendChild(container)
+document.body.appendChild(pageWrapper)
 
 async function init() {
-    const products = await getProducts()
+    products = await getProducts()
     renderProducts(products)
+    const categories = await getCategories()
+    renderCategories(categories)
 }
 
 init()
