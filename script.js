@@ -8,8 +8,10 @@ container.classList.add('container')
 const products_container = document.createElement('div')
 products_container.classList.add('products_container')
 const searchContainer = document.createElement('div')
+searchContainer.classList.add('search-container')
 
 const searchInput = document.createElement('input')
+searchInput.classList.add('search-input')
 searchInput.placeholder = 'Search products...'
 
 const searchBtn = document.createElement('button')
@@ -20,22 +22,33 @@ clearBtn.innerText = 'Clear Searches'
 
 searchContainer.append(searchInput, searchBtn, clearBtn)
 
-const sortContainer = document.createElement('div')
-sortContainer.classList.add('sort')
+const sortContainer = document.createElement('select')
+sortContainer.style.alignSelf = 'start'
 
-const sortByLowHigh = document.createElement('button')
+const default_select = document.createElement('option')
+default_select.value = ''
+default_select.innerText = 'Select'
+default_select.disabled = true
+default_select.selected = true
+
+const sortByLowHigh = document.createElement('option')
 sortByLowHigh.classList.add('sort-options')
 sortByLowHigh.innerText = 'Sort By Price Low To High'
+sortByLowHigh.value = 'lowToHigh'
 
-const sortByHighLow = document.createElement('button')
+
+const sortByHighLow = document.createElement('option')
 sortByHighLow.classList.add('sort-options')
 sortByHighLow.innerText = 'Sort By Price High To Low'
+sortByHighLow.value = 'highToLow'
 
-const sortByRating = document.createElement('button')
+const sortByRating = document.createElement('option')
 sortByRating.classList.add('sort-options')
 sortByRating.innerText = 'Sort By Rating (High To Low)'
+sortByRating.value = 'rating'
 
-sortContainer.append(sortByLowHigh, sortByHighLow, sortByRating)
+
+sortContainer.append(default_select, sortByLowHigh, sortByHighLow, sortByRating)
 
 const leftSidebar = document.createElement('div')
 leftSidebar.classList.add('left-sidebar')
@@ -78,31 +91,31 @@ function renderCategories(categories) {
 
 let products = null
 
-sortByLowHigh.addEventListener('click', () => {
-    const sorted = [...products].sort((a, b) => {
-        const priceA = a.price - (a.price * a.discountPercentage / 100)
-        const priceB = b.price - (b.price * b.discountPercentage / 100)
-        return priceA - priceB
-    })
-    renderProducts(sorted)
+sortContainer.addEventListener('change', () => {
+    const value = sortContainer.value
+
+    if (value === 'lowToHigh') {
+        const sorted = [...products].sort((a, b) => {
+            const priceA = a.price - (a.price * a.discountPercentage / 100)
+            const priceB = b.price - (b.price * b.discountPercentage / 100)
+            return priceA - priceB
+        })
+        renderProducts(sorted)
+    } else if (value === 'highToLow') {
+        const sorted = [...products].sort((a, b) => {
+            const priceA = a.price - (a.price * a.discountPercentage / 100)
+            const priceB = b.price - (b.price * b.discountPercentage / 100)
+            return priceB - priceA
+        })
+        renderProducts(sorted)
+    } else if (value === 'rating') {
+        const sorted = [...products].sort((a, b) => b.rating - a.rating)
+        renderProducts(sorted)
+    }
 })
 
-sortByHighLow.addEventListener('click', () => {
-    const sorted = [...products].sort((a, b) => {
-        const priceA = a.price - (a.price * a.discountPercentage / 100)
-        const priceB = b.price - (b.price * b.discountPercentage / 100)
-        return priceB - priceA
-    })
-    renderProducts(sorted)
-})
-
-sortByRating.addEventListener('click', () => {
-    const sorted = [...products].sort((a, b) => b.rating - a.rating)
-    renderProducts(sorted)
-})
-
-searchBtn.addEventListener('click', async()=>{
-     const query = searchInput.value
+searchBtn.addEventListener('click', async () => {
+    const query = searchInput.value
     const response = await fetch(`https://dummyjson.com/products/search?q=${query}`)
     const data = await response.json()
     renderProducts(data.products)
@@ -115,6 +128,7 @@ clearBtn.addEventListener('click', () => {
 
 const clearCatBtn = document.createElement('button')
 clearCatBtn.innerText = 'Clear Categories'
+clearCatBtn.classList.add('clearCatBtn')
 clearCatBtn.addEventListener('click', () => {
     document.querySelectorAll('input[name="category"]').forEach(r => r.checked = false)
     renderProducts(products)
@@ -137,10 +151,13 @@ function createProductCard(product) {
     // Thumbnails
     const thumbContainer = document.createElement('div')
     thumbContainer.classList.add('thumb-container')
-    product.images.forEach(imgUrl => {
+    product.images.slice(0,4).forEach(imgUrl => {
         const thumb = document.createElement('img')
         thumb.src = imgUrl
         thumb.classList.add('thumb')
+        thumb.addEventListener('click',()=>{
+            mainImg.src = imgUrl
+        })
         thumbContainer.appendChild(thumb)
     })
     card.appendChild(thumbContainer)
