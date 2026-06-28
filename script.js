@@ -151,11 +151,11 @@ function createProductCard(product) {
     // Thumbnails
     const thumbContainer = document.createElement('div')
     thumbContainer.classList.add('thumb-container')
-    product.images.slice(0,4).forEach(imgUrl => {
+    product.images.slice(0, 4).forEach(imgUrl => {
         const thumb = document.createElement('img')
         thumb.src = imgUrl
         thumb.classList.add('thumb')
-        thumb.addEventListener('click',()=>{
+        thumb.addEventListener('click', () => {
             mainImg.src = imgUrl
         })
         thumbContainer.appendChild(thumb)
