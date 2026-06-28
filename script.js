@@ -3,18 +3,10 @@ pageWrapper.style.display = 'flex'
 pageWrapper.style.gap = '20px'
 
 const container = document.createElement('div')
-container.style.display = 'flex'
-container.style.flexDirection = 'column'
-container.style.gap = '20px'
-container.style.padding = '10px'
-container.style.alignItems = 'center'
+container.classList.add('container')
 
 const products_container = document.createElement('div')
-products_container.style.display = 'flex'
-products_container.style.flexWrap = 'wrap'
-products_container.style.width = '80%'
-products_container.style.gap = '20px'
-
+products_container.classList.add('products_container')
 const searchContainer = document.createElement('div')
 
 const searchInput = document.createElement('input')
@@ -46,12 +38,7 @@ sortByRating.innerText = 'Sort By Rating (High To Low)'
 sortContainer.append(sortByLowHigh, sortByHighLow, sortByRating)
 
 const leftSidebar = document.createElement('div')
-leftSidebar.style.width = '200px'
-leftSidebar.style.padding = '10px'
-leftSidebar.style.flexShrink = '0'
-leftSidebar.style.display = 'flex'
-leftSidebar.style.flexDirection = 'column'
-leftSidebar.style.gap = '10px'
+leftSidebar.classList.add('left-sidebar')
 
 async function getProducts() {
     const response = await fetch('https://dummyjson.com/products?limit=15')
